@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Deux familles, pas davantage : une serif de titre qui donne un ton éditorial,
+   une sans-serif de lecture. Auto-hébergées, aucune requête externe. */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+
+@theme {
+  --font-titre: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+
+  /* Palette propre au projet — aucune couleur Tailwind par défaut. */
+  --color-fond: #fbfaf7;
+  --color-fond-creuse: #f4f1ea;
+  --color-encre: #191714;
+  --color-encre-douce: #56504a;
+  --color-trait: #e4dfd4;
+  --color-accent: #1f5c4a;
+  --color-accent-clair: #e9f1ed;
+  --color-alerte: #8c3b2e;
+}
+
+/* La serif optique de Fraunces : plus douce en gros corps. */
+.titre {
+  font-family: var(--font-titre);
+  font-variation-settings: 'SOFT' 20, 'WONK' 1, 'opsz' 40;
+  letter-spacing: -0.015em;
+}

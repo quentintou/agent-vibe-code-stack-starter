@@ -1,0 +1,266 @@
+---
+import Base from '../layouts/Base.astro'
+
+// 3 — « Est-ce que vous vous reconnaissez ? » : les trois situations réelles.
+const situations = [
+  ['Je publie des pages d’atterrissage', 'Netlify ou Cloudflare font très bien le travail, gratuitement. Restez-y. Le calcul change quand les pages se multiplient : dix sites sur une machine à 5 €, la même commande pour tous, un fichier de configuration par site qui n’interfère pas avec les autres.'],
+  ['Je veux un tableau de bord interne', 'L’hébergement managé s’arrête là où votre outil commence : base persistante, traitements longs, tâches à heure fixe. Le chemin application couvre les trois.'],
+  ['J’ai déjà un VPS et je bricole', 'Vous avez les briques, pas la procédure. Le dépôt fixe les conventions (un fichier de configuration par site, un port par projet, un script) pour que ça tienne encore au dixième projet.'],
+]
+
+// 6 — Les composants. Chaque caractéristique porte son bénéfice.
+const composants = [
+  ['Un contrat d’entrée pour l’agent', 'Questions à poser une par une, étapes ordonnées, interdits explicites.', 'Il ne devine pas, et il ne réordonne pas les étapes.'],
+  ['Un script de déploiement', 'Un fichier de configuration, une commande. La construction a lieu sur le serveur.', 'Vous n’installez pas Docker sur votre machine.'],
+  ['Deux squelettes prêts', 'TanStack Start + Postgres + comptes, ou Astro statique.', 'Vous partez d’un projet qui démarre, pas d’une page blanche.'],
+  ['Préparation du serveur', 'Docker et Caddy installés depuis leurs dépôts signés, un fichier de configuration par site.', 'Un nouveau projet ne casse pas ceux déjà en ligne.'],
+  ['Inscription fermée par défaut', 'Les comptes se créent en ligne de commande, dans un conteneur jetable.', 'Personne ne se crée un compte sur votre outil interne.'],
+  ['Garde-fou anti-secrets', 'Il tourne avant la création du dépôt distant, et accepte les fichiers d’exemple.', 'Aucune clé ne part sur GitHub, et vous ne le désactivez pas au bout d’une semaine parce qu’il crie pour rien.'],
+  ['Relecture du fichier Docker', 'Analyse du contenu interprété, quatre points d’entrée contrôlés.', 'Un conteneur ne peut pas obtenir un accès à la machine.'],
+  ['Quinze pannes documentées', 'Symptôme, diagnostic, cause, correctif.', 'Quand ça casse, votre agent sait où chercher au lieu d’improviser.'],
+  ['Un contrôle du site publié', 'Plan du site et liens canoniques vérifiés, pages supprimées réellement retirées.', 'Votre site est indexable, et il ne garde pas de pages fantômes.'],
+  ['Dix suites de tests', 'Une commande. Chaque garde-fou est éprouvé avec la faute qu’il doit refuser.', 'Vous savez que les protections marchent, au lieu de l’espérer.'],
+]
+
+const etapes = [
+  ['Vous donnez l’adresse du dépôt à votre agent', 'Il lit le contrat d’entrée et vous pose quatre questions.'],
+  ['Vous répondez et vous fournissez vos accès', 'S’il lui manque quelque chose, il s’arrête et vous dit quoi.'],
+  ['Il déploie et vérifie', 'Serveur, domaine, certificat, base, migrations. Puis contrôle depuis l’extérieur.'],
+]
+
+const chemins = [
+  { nom: 'Contenu', pour: 'Site vitrine, blog, documentation',
+    pile: ['Astro', 'pages générées à l’avance', 'servies par Caddy'],
+    quoi: ['aucune base de données', 'aucun conteneur en service', 'plan du site et liens canoniques corrects'],
+    lien: null },
+  { nom: 'Application', pour: 'Tableau de bord, outil interne, espace client',
+    pile: ['TanStack Start', 'Postgres', 'better-auth', 'Docker Compose'],
+    quoi: ['comptes et sessions', 'migrations appliquées avant le trafic', 'anti-robots en option'],
+    lien: 'https://stack.app-run.pro' },
+]
+---
+
+<Base
+  titre="agent-vibe-code-stack-starter — votre agent sait coder, ce dépôt lui apprend à mettre en ligne"
+  description="GitHub pour le code, Cloudflare pour le domaine, un VPS. Un dépôt écrit pour être lu et exécuté par un agent : il prépare le serveur, déploie, et vérifie depuis l’extérieur."
+>
+  <!-- 1-2. Hero + bénéfice -->
+  <section class="mx-auto max-w-5xl px-6 pt-20 pb-14">
+    <p class="text-xs font-medium tracking-[0.18em] text-accent uppercase">Dépôt open source · MIT · gratuit</p>
+    <h1 class="titre mt-5 max-w-3xl text-4xl leading-[1.08] font-semibold sm:text-[3.3rem]">
+      Votre agent sait coder. Ce dépôt lui apprend à mettre en ligne.
+    </h1>
+    <p class="mt-7 max-w-2xl text-lg leading-relaxed text-encre-douce">
+GitHub pour le code, Cloudflare pour le domaine, un VPS pour tout faire tourner.
+      Vous ne tapez aucune commande. Vous donnez une adresse à
+      <strong class="text-encre">votre agent</strong>, il pose quatre questions,
+      il prépare le serveur et il déploie. Puis il va vérifier depuis l’extérieur
+      que ça marche vraiment.
+    </p>
+    <div class="mt-9 flex flex-wrap items-center gap-4">
+      <a href="https://github.com/quentintou/agent-vibe-code-stack-starter"
+         class="rounded-full bg-accent px-6 py-3 text-sm font-medium text-fond hover:bg-encre">Voir le dépôt</a>
+      <a href="/demarrer/" class="text-sm text-encre-douce underline decoration-trait underline-offset-4 hover:text-encre">
+        Comment s’en servir
+      </a>
+    </div>
+  </section>
+
+  <!-- 3. Reconnaissance -->
+  <section class="border-y border-trait bg-fond-creuse">
+    <div class="mx-auto max-w-5xl px-6 py-14">
+      <h2 class="titre text-2xl font-semibold">Où vous en êtes</h2>
+      <div class="mt-8 grid gap-7 sm:grid-cols-3">
+        {situations.map(([titre, texte]) => (
+          <div class="border-t-2 border-accent pt-4">
+            <h3 class="font-medium">« {titre} »</h3>
+            <p class="mt-2 text-sm leading-relaxed text-encre-douce">{texte}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 4-5. Mécanisme -->
+  <section class="mx-auto max-w-5xl px-6 py-16">
+    <div class="grid gap-12 lg:grid-cols-[1.1fr_1fr]">
+      <div>
+        <h2 class="titre text-2xl font-semibold">Un modèle de projet ne suffit pas</h2>
+        <p class="mt-5 text-encre-douce">
+          Les modèles donnent des fichiers. Pas l’ordre des opérations, pas les interdits,
+          pas le moyen de savoir que ça a marché. Un agent les remplit consciencieusement,
+          puis improvise au premier imprévu. Et un agent qui improvise sur un serveur,
+          c’est exactement ce qu’on cherchait à éviter.
+        </p>
+        <p class="mt-4 text-encre-douce">
+          Les pannes qui coûtent cher ne se plaignent pas. Le déploiement annonce
+          « réussi », la page répond, et le site est inutilisable. On l’apprend par un
+          utilisateur, trois jours plus tard.
+        </p>
+      </div>
+      <div class="rounded-xl border border-accent/25 bg-accent-clair p-7">
+        <p class="text-xs font-medium tracking-[0.16em] text-accent uppercase">Le principe</p>
+        <p class="titre mt-3 text-xl leading-snug">
+          Rien n’est déclaré réussi sans avoir été vérifié depuis l’extérieur.
+        </p>
+        <ul class="mt-5 space-y-2.5 text-sm text-encre-douce">
+          <li>— chaque étape a sa commande de contrôle et sa sortie attendue ;</li>
+          <li>— le déploiement échoue bruyamment plutôt que de laisser un site à moitié en ligne ;</li>
+          <li>— quand un accès manque, l’agent s’arrête et le nomme, au lieu de contourner.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Caractéristiques -->
+  <section class="border-y border-trait">
+    <div class="mx-auto max-w-5xl px-6 py-16">
+      <h2 class="titre text-2xl font-semibold">Ce qu’il y a dedans</h2>
+      <p class="mt-3 max-w-2xl text-encre-douce">
+        Chaque règle vient d’une panne rencontrée sur un vrai serveur, pas d’une préférence de style.
+      </p>
+      <dl class="mt-9 divide-y divide-trait">
+        {composants.map(([titre, quoi, benefice]) => (
+          <div class="grid gap-2 py-5 sm:grid-cols-[15rem_1fr] sm:gap-8">
+            <dt class="font-medium">{titre}</dt>
+            <dd class="text-sm leading-relaxed text-encre-douce">
+              {quoi} <span class="text-encre">{benefice}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <!-- 7. Comment ça marche -->
+  <section class="mx-auto max-w-5xl px-6 py-16">
+    <h2 class="titre text-2xl font-semibold">Comment ça se passe</h2>
+    <ol class="mt-8 grid gap-8 sm:grid-cols-3">
+      {etapes.map(([titre, texte], i) => (
+        <li>
+          <span class="titre block text-3xl text-accent">{i + 1}</span>
+          <h3 class="mt-2.5 font-medium">{titre}</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-encre-douce">{texte}</p>
+        </li>
+      ))}
+    </ol>
+    <div class="mt-10 rounded-xl border border-trait bg-fond-creuse p-6 font-mono text-sm">
+      <p class="text-encre-douce">Vous, à votre agent :</p>
+      <p class="mt-3 leading-relaxed">
+        Voici un dépôt :<br />
+        <span class="text-accent">github.com/quentintou/agent-vibe-code-stack-starter</span><br />
+        Monte-moi un tableau de bord interne, avec connexion et base de données.
+      </p>
+    </div>
+  </section>
+
+  <!-- 9. Les deux chemins -->
+  <section class="border-y border-trait bg-fond-creuse">
+    <div class="mx-auto max-w-5xl px-6 py-16">
+      <h2 class="titre text-2xl font-semibold">Deux chemins, pas davantage</h2>
+      <p class="mt-3 max-w-2xl text-encre-douce">
+        Un seul choix à faire, et il est guidé. Les deux tournent sur le même serveur,
+        avec le même script.
+      </p>
+      <p class="mt-3 max-w-2xl text-sm text-encre-douce">
+        Et ils <strong class="text-encre">cohabitent</strong> : chaque projet dépose son
+        propre fichier de configuration côté serveur web, sur son propre port, dans son
+        propre dossier. Ajouter un site ne touche pas à ceux déjà en ligne. C’est ce qui
+        permet d’en accumuler sans que l’ensemble devienne fragile.
+      </p>
+      <div class="mt-9 grid gap-6 sm:grid-cols-2">
+        {chemins.map((c) => (
+          <article class="rounded-xl border border-trait bg-fond p-7">
+            <h3 class="titre text-xl font-semibold">{c.nom}</h3>
+            <p class="mt-1.5 text-sm text-encre-douce">{c.pour}</p>
+            <ul class="mt-4 flex flex-wrap gap-1.5">
+              {c.pile.map((p) => <li class="rounded bg-fond-creuse px-2 py-1 text-xs text-encre-douce">{p}</li>)}
+            </ul>
+            <ul class="mt-5 space-y-1.5 text-sm text-encre-douce">
+              {c.quoi.map((q) => <li>— {q}</li>)}
+            </ul>
+            <p class="mt-5 text-sm">
+              {c.lien
+                ? <a href={c.lien} class="font-medium text-accent underline underline-offset-4">Voir la démonstration →</a>
+                : <span class="text-encre-douce">Vous en lisez une : cette page.</span>}
+            </p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. Preuve -->
+  <section class="mx-auto max-w-5xl px-6 py-16">
+    <h2 class="titre text-2xl font-semibold">Vérifiable, pas déclaratif</h2>
+    <div class="mt-8 grid gap-6 sm:grid-cols-3">
+      {[['2', 'démonstrations en ligne', 'Un outil interne avec comptes, et ce site. Même serveur, même script.'],
+        ['10', 'suites de tests', 'Une commande. Chaque garde-fou est éprouvé avec la faute qu’il doit refuser.'],
+        ['4', 'déploiements à blanc', 'Sur des machines vides, jusqu’à ce que ça passe d’un trait. Les journaux sont dans le dépôt.']
+       ].map(([n, quoi, texte]) => (
+        <div class="rounded-lg border border-trait p-6">
+          <p class="titre text-3xl text-accent">{n}</p>
+          <p class="mt-1.5 font-medium">{quoi}</p>
+          <p class="mt-1.5 text-sm leading-relaxed text-encre-douce">{texte}</p>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-9 rounded-xl border border-accent/25 bg-accent-clair p-7">
+      <p class="font-medium">Essayez sans créer de compte</p>
+      <p class="mt-1.5 max-w-2xl text-sm leading-relaxed text-encre-douce">
+        La démonstration propose une visite guidée : quatre boutons qui envoient de vraies
+        requêtes au serveur depuis votre navigateur et affichent la réponse obtenue.
+        L’inscription est-elle vraiment fermée ? La base répond-elle ? Vous le voyez,
+        vous ne le croyez pas sur parole.
+      </p>
+      <p class="mt-5">
+        <a href="https://stack.app-run.pro" class="rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-fond hover:bg-encre">
+          Ouvrir la visite guidée
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <!-- 11. FAQ -->
+  <section class="border-t border-trait bg-fond-creuse">
+    <div class="mx-auto max-w-3xl px-6 py-16">
+      <h2 class="titre text-2xl font-semibold">Questions</h2>
+      <dl class="mt-8 space-y-7">
+        {[
+          ['Faut-il savoir coder ?',
+           'Non, mais il faut ouvrir les comptes vous-même : votre agent ne peut ni saisir une carte bancaire, ni passer une vérification d’identité, ni cliquer sur un lien de confirmation reçu dans votre boîte. Le reste, il le fait.'],
+          ['Combien ça coûte ?',
+           'Le dépôt est gratuit. Comptez environ 5 € par mois pour le serveur, plus votre nom de domaine. Cloudflare est gratuit pour ce qu’on lui demande ici.'],
+          ['Je suis très bien sur Netlify ou Cloudflare.',
+           'Alors restez-y. Pour un site ou une page d’atterrissage, ils sont plus simples que tout ce qui est décrit ici, et ce dépôt ne vous apportera rien. Il commence à servir le jour où vous avez une base à garder, des traitements longs, ou plusieurs sites à regrouper.'],
+          ['Et les Cloudflare Workers ?',
+           'Le code applicatif ne tourne pas dessus. C’est un choix de périmètre, pas un oubli : une base persistante et des tâches longues s’y accommodent mal. Ils restent le bon outil pour envoyer des e-mails depuis votre domaine ou rediriger en périphérie, et rien n’empêche de faire les deux.'],
+          ['Est-ce que je reste libre de partir ?',
+           'Votre application est une image Docker ordinaire, qui tourne à l’identique sur n’importe quelle machine Linux. Rien à réécrire le jour où vous changez d’hébergeur.'],
+          ['Et si ça casse ?',
+           'Quinze pannes connues sont documentées avec symptôme, cause et correctif, et votre agent sait où les lire. Au-delà, c’est fourni tel quel. Aucun support n’est garanti, et mieux vaut le savoir avant qu’après.'],
+        ].map(([q, r]) => (
+          <div>
+            <dt class="font-medium">{q}</dt>
+            <dd class="mt-1.5 text-sm leading-relaxed text-encre-douce">{r}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div class="mt-12 border-t border-trait pt-10">
+        <h2 class="titre text-2xl font-semibold">Prenez-le, il est à vous</h2>
+        <p class="mt-3 max-w-xl text-encre-douce">
+          Licence MIT. Votre code reste chez vous, votre serveur aussi.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-4">
+          <a href="https://github.com/quentintou/agent-vibe-code-stack-starter"
+             class="rounded-full bg-accent px-6 py-3 text-sm font-medium text-fond hover:bg-encre">Voir le dépôt</a>
+          <a href="/demarrer/" class="rounded-full border border-trait px-6 py-3 text-sm font-medium hover:border-encre-douce">
+            Comment s’en servir
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

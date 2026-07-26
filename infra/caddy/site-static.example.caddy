@@ -1,0 +1,21 @@
+# Variante pour un site statique servi par un conteneur Caddy (chemin contenu).
+# Le conteneur sert deja les fichiers ; ce fragment ne fait que le TLS + proxy.
+example.com {
+	encode gzip zstd
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy 127.0.0.1:APP_PORT {
+		# Transmet l'IP reelle du visiteur : sans elle, l'application ne peut
+		# pas limiter le debit par client.
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+www.example.com {
+	redir https://example.com{uri} permanent
+}

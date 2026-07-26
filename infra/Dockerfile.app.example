@@ -1,0 +1,35 @@
+# Build multi-stage : on compile avec toutes les dependances,
+# on n'embarque que le runtime dans l'image finale.
+#
+# ATTENTION : `vite build` produit dist/, PAS .output/ comme l'indique encore
+# une partie de la documentation TanStack. Et dist/server/server.js exporte un
+# handler `fetch`, pas un serveur qui ecoute : c'est server.mjs qui le monte sur
+# un port. Lancer server.js directement se termine sans message d'erreur.
+FROM node:22-alpine AS builder
+WORKDIR /build
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+
+# L'application ne tourne pas en root : une faille applicative ne doit pas
+# donner les pleins pouvoirs dans le conteneur. L'image node fournit deja un
+# utilisateur "node" non privilegie.
+COPY --chown=node:node package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder --chown=node:node /build/dist ./dist
+COPY --from=builder --chown=node:node /build/server.mjs ./server.mjs
+# Migrations et leur runner : sans eux, la base reste vide et l'application
+# demarre sur un schema inexistant.
+COPY --from=builder --chown=node:node /build/drizzle ./drizzle
+COPY --from=builder --chown=node:node /build/migrate.mjs ./migrate.mjs
+# Creation de comptes hors ligne, dans un conteneur jetable (scripts/create-user.sh).
+COPY --from=builder --chown=node:node /build/create-user.mjs ./create-user.mjs
+
+USER node
+EXPOSE 3000
+CMD ["node", "server.mjs"]

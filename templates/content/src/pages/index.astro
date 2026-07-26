@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro'
+import { getArticlesPublies } from '../lib/contenu'
+
+const articles = (await getArticlesPublies()).slice(0, 3)
+---
+
+<Base titre="Mon site" description="Décris ici ton activité en une phrase.">
+  <h1 class="text-4xl font-bold tracking-tight">Mon site</h1>
+  <p class="mt-4 text-lg text-slate-600">
+    Remplace ce texte. Une phrase qui dit ce que tu fais et pour qui.
+  </p>
+
+  {articles.length > 0 && (
+    <section class="mt-12">
+      <h2 class="text-2xl font-semibold">Derniers articles</h2>
+      <ul class="mt-6 space-y-4">
+        {articles.map((article) => (
+          <li>
+            <a href={`/blog/${article.id}/`} class="font-medium hover:underline">
+              {article.data.title}
+            </a>
+            <p class="text-sm text-slate-600">{article.data.description}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>

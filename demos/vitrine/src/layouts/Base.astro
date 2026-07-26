@@ -1,0 +1,72 @@
+---
+import '../styles/global.css'
+
+interface Props { titre: string; description: string; noindex?: boolean }
+const { titre, description, noindex = false } = Astro.props
+const canonique = new URL(Astro.url.pathname, Astro.site)
+const ici = Astro.url.pathname
+const nav = [
+  { href: '/', libelle: 'Le principe' },
+  { href: '/demarrer/', libelle: 'Démarrer' },
+]
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titre}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonique} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={titre} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonique} />
+  </head>
+
+  <body class="min-h-screen bg-fond text-encre antialiased">
+    <a href="#contenu" class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded focus:bg-encre focus:px-4 focus:py-2 focus:text-fond">
+      Aller au contenu
+    </a>
+
+    <header class="border-b border-trait">
+      <nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-5" aria-label="Navigation principale">
+        <a href="/" class="flex items-center gap-2.5 text-[0.9rem] font-medium tracking-tight">
+          <span class="inline-block h-2 w-2 rounded-full bg-accent"></span>
+          agent-vibe-code-stack-starter
+        </a>
+        <ul class="flex items-center gap-7 text-sm">
+          {nav.map((l) => (
+            <li>
+              <a href={l.href} class={ici === l.href ? 'font-medium text-encre' : 'text-encre-douce hover:text-encre'}>
+                {l.libelle}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href="https://github.com/quentintou/agent-vibe-code-stack-starter"
+               class="rounded-full border border-trait px-3.5 py-1.5 text-encre-douce hover:border-encre-douce hover:text-encre">
+              GitHub
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="contenu"><slot /></main>
+
+    <footer class="mt-24 border-t border-trait bg-fond-creuse">
+      <div class="mx-auto max-w-5xl px-6 py-12 text-sm text-encre-douce">
+        <p class="titre text-base text-encre">Cette page est servie par ce qu'elle décrit.</p>
+        <p class="mt-2 max-w-2xl">
+          Site statique construit dans un conteneur jetable, servi par Caddy, sur le même
+          serveur que la démonstration applicative — un seul script pour les deux.
+        </p>
+        <p class="mt-6">Licence MIT · fourni tel quel, sans garantie de support.</p>
+      </div>
+    </footer>
+  </body>
+</html>

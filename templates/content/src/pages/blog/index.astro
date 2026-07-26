@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro'
+import { getArticlesPublies } from '../../lib/contenu'
+
+const articles = await getArticlesPublies()
+const dateFr = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
+---
+
+<Base titre="Blog — Mon site" description="Tous les articles.">
+  <h1 class="text-3xl font-bold tracking-tight">Blog</h1>
+
+  {articles.length === 0 ? (
+    <p class="mt-6 text-slate-600">Aucun article pour l'instant.</p>
+  ) : (
+    <ul class="mt-8 space-y-8">
+      {articles.map((article) => (
+        <li>
+          <time datetime={article.data.publishedAt.toISOString()} class="text-sm text-slate-500">
+            {dateFr.format(article.data.publishedAt)}
+          </time>
+          <h2 class="mt-1 text-xl font-semibold">
+            <a href={`/blog/${article.id}/`} class="hover:underline">{article.data.title}</a>
+          </h2>
+          <p class="mt-1 text-slate-600">{article.data.description}</p>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>

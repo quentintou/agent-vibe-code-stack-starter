@@ -1,0 +1,32 @@
+---
+import { render } from 'astro:content'
+import Base from '../../layouts/Base.astro'
+import { getArticlesPublies } from '../../lib/contenu'
+
+// getStaticPaths s'exécute à la construction : seules les pages retournées ici
+// existent. Un article filtré par getArticlesPublies n'a donc aucune page —
+// c'est ce qui garantit qu'un brouillon n'est pas accessible par son URL.
+export async function getStaticPaths() {
+  const articles = await getArticlesPublies()
+  return articles.map((article) => ({
+    params: { slug: article.id },
+    props: { article },
+  }))
+}
+
+const { article } = Astro.props
+const { Content } = await render(article)
+const dateFr = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
+---
+
+<Base titre={`${article.data.title} — Mon site`} description={article.data.description}>
+  <article>
+    <time datetime={article.data.publishedAt.toISOString()} class="text-sm text-slate-500">
+      {dateFr.format(article.data.publishedAt)}
+    </time>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight">{article.data.title}</h1>
+    <div class="prose prose-slate mt-8">
+      <Content />
+    </div>
+  </article>
+</Base>

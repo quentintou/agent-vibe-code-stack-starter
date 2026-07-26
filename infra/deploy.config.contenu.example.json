@@ -1,0 +1,12 @@
+{
+  "kind": "content",
+  "project": "demo-site",
+  "vps": {
+    "host": "root@CHANGE_ME"
+  },
+  "app": {
+    "dir": "/opt/apps/demo-site"
+  },
+  "domain": "example.com",
+  "health_url": "https://example.com/"
+}

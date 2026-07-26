@@ -1,0 +1,16 @@
+{
+  "kind": "app",
+  "project": "demo",
+  "vps": {
+    "host": "root@CHANGE_ME"
+  },
+  "app": {
+    "dir": "/opt/apps/demo",
+    "image_name": "demo-app",
+    "db_container": "demo-db",
+    "app_port": 8300
+  },
+  "domain": "example.com",
+  "health_url": "https://example.com/api/health",
+  "secrets_file": ".env.production"
+}

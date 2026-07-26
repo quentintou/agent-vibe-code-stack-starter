@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Refuse le commit si un secret est present dans l'INDEX.
+#
+# Analyser le disque ne suffit pas : un secret ajoute au commit puis retire du
+# fichier local passerait sans alerte. C'est ce qui part au commit qui compte.
+#
+# Active par : scripts/install-hooks.sh
+set -e
+exec python3 "$(git rev-parse --show-toplevel)/scripts/check-secrets.py" --staged

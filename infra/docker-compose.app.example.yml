@@ -1,0 +1,72 @@
+# Stack applicative : une app Node + une base Postgres.
+#
+# Remplacer avant usage :
+#   PROJET    -> nom court du projet (ex: cockpit), minuscules, sans espace
+#   APP_PORT  -> port libre sur le VPS pour l'app (ex: 8300)
+#
+# Trois regles non negociables, expliquees a l'endroit concerne :
+#   1. la CLE du service Postgres est unique, jamais "db"
+#   2. les ports ne sont publies que sur 127.0.0.1
+#   3. DATABASE_URL vient du .env, avec le mot de passe deja encode
+services:
+  # REGLE 1 — c'est la CLE du service qui compte, pas seulement container_name.
+  # Docker Compose publie la cle du service comme alias DNS sur le reseau. Le
+  # reseau "web" etant partage par tous les projets du VPS, une cle "db" cree un
+  # alias "db" qui peut resoudre vers le Postgres d'un AUTRE projet => erreurs
+  # "28P01 password authentication failed" INTERMITTENTES (docs/05-pannes.md).
+  # Renommer container_name ne suffit PAS : l'alias vient de la cle.
+  PROJET-db:
+    image: postgres:17-alpine
+    container_name: PROJET-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: PROJET
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env}
+      POSTGRES_DB: PROJET
+    # Aucun port publie : la base n'est joignable que par son application, sur
+    # le reseau interne. Pour l'administrer ponctuellement, ouvrir un tunnel :
+    #   ssh -L 5432:PROJET-db:5432 user@serveur
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U PROJET"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # La base n'est PAS sur le reseau partage "web" : elle y serait joignable
+    # depuis les conteneurs de tous les autres projets du serveur, seul le mot
+    # de passe faisant barrage. Elle ne parle qu'a son application.
+    networks: [interne]
+
+  app:
+    image: PROJET-app
+    container_name: PROJET-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:APP_PORT:3000"
+    # REGLE 3 — DATABASE_URL est definie dans .env, jamais composee ici.
+    # Un mot de passe contenant @ / : ou % casserait une URL assemblee par
+    # interpolation, avec une erreur de connexion incomprehensible. Le .env
+    # doit contenir une URL complete au mot de passe deja encode.
+    # Voir docs/04-deploiement.md.
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      PROJET-db:
+        condition: service_healthy
+    # "web" pour etre atteignable par Caddy, "interne" pour joindre la base.
+    networks: [web, interne]
+
+volumes:
+  pgdata:
+
+networks:
+  web:
+    external: true
+  interne:
+    driver: bridge
+    # Aucun acces sortant vers Internet depuis ce reseau : une base compromise
+    # ne peut pas exfiltrer de donnees.
+    internal: true

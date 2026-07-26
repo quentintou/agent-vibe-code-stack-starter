@@ -1,0 +1,5 @@
+# Caddyfile central — ne contient AUCUNE configuration de site.
+# Chaque projet depose son propre fichier dans /etc/caddy/sites/<projet>.caddy.
+# Un projet ne modifie JAMAIS ce fichier : c'est ce qui permet a plusieurs
+# projets (et a plusieurs agents) de cohabiter sans s'ecraser mutuellement.
+import /etc/caddy/sites/*.caddy

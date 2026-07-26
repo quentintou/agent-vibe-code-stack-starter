@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.output/
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+.DS_Store
+
+# Motifs privés du garde-fou anti-secrets : ne doit JAMAIS être versionné.
+.secrets-patterns.local
+.astro/
+*.log
+deploy.config.json

@@ -1,0 +1,90 @@
+---
+import Base from '../../layouts/Base.astro'
+
+const etapes = [
+  ['Donner l’URL du dépôt à votre agent', 'Il lit le contrat d’entrée, vous pose quatre questions (une par une), puis choisit le chemin : application ou contenu.'],
+  ['Répondre aux questions', 'Avez-vous un domaine ? Un serveur ? Des données à conserver ? S’il vous manque un accès, il s’arrête et vous dit lequel plutôt que d’improviser.'],
+  ['Le laisser préparer le serveur', 'Docker et Caddy installés depuis leurs dépôts signés, un fichier de configuration par site pour ne pas casser ce qui tourne déjà.'],
+  ['Faire pointer le domaine', 'Chez Cloudflare, sans le proxy au premier déploiement : le certificat s’obtient en direct.'],
+  ['Déployer', 'Un fichier de configuration, un script. La construction a lieu sur le serveur : vous n’avez pas besoin de Docker en local.'],
+]
+
+const nePeutPas = [
+  'ouvrir un compte chez un hébergeur ou chez Cloudflare',
+  'saisir une carte bancaire',
+  'passer une vérification d’identité ou un CAPTCHA',
+  'cliquer sur un lien de confirmation reçu dans votre boîte mail',
+]
+---
+
+<Base
+  titre="Démarrer — agent-vibe-code-stack-starter"
+  description="Comment donner le dépôt à son agent de code, et ce qu’il faut lui fournir."
+>
+  <div class="mx-auto max-w-3xl px-6 py-16">
+  <h1 class="titre text-3xl font-semibold tracking-tight sm:text-4xl">Démarrer</h1>
+  <p class="mt-5 max-w-2xl text-lg text-encre-douce">
+    Le lecteur de ce dépôt est un agent, pas un humain. Vous n’avez pas de commandes à taper :
+    vous lui donnez l’URL et vous répondez à ses questions.
+  </p>
+
+  <ol class="mt-10 space-y-6">
+    {etapes.map(([titre, texte], i) => (
+      <li class="flex gap-5">
+        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-medium text-fond">{i + 1}</span>
+        <div>
+          <h2 class="font-semibold">{titre}</h2>
+          <p class="mt-1 text-sm text-encre-douce">{texte}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <section class="mt-14 rounded-xl border border-trait bg-fond-creuse p-6">
+    <h2 class="font-semibold">Sur votre machine</h2>
+    <p class="mt-2 text-sm text-encre-douce">
+      <code class="rounded bg-fond px-1.5 py-0.5">git</code>,
+      <code class="rounded bg-fond px-1.5 py-0.5">node</code> 22+,
+      <code class="rounded bg-fond px-1.5 py-0.5">python3</code>,
+      <code class="rounded bg-fond px-1.5 py-0.5">ssh</code>,
+      <code class="rounded bg-fond px-1.5 py-0.5">rsync</code>,
+      <code class="rounded bg-fond px-1.5 py-0.5">curl</code>,
+      <code class="rounded bg-fond px-1.5 py-0.5">dig</code>,
+      <code class="rounded bg-fond px-1.5 py-0.5">openssl</code> et
+      <code class="rounded bg-fond px-1.5 py-0.5">gh</code>.
+      Le dépôt donne la commande de vérification de chacun — les lancer vraiment,
+      plutôt que de supposer : une seule absente fait échouer une étape au milieu.
+    </p>
+    <p class="mt-3 text-sm text-encre-douce">
+      <strong class="text-encre">Pas besoin de Docker.</strong> L'image est construite sur le serveur.
+    </p>
+  </section>
+
+  <section class="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-6">
+    <h2 class="font-semibold text-amber-900">Ce que l’agent ne peut pas faire à votre place</h2>
+    <ul class="mt-3 space-y-1.5 text-sm text-amber-900/90">
+      {nePeutPas.map((x) => <li>— {x}</li>)}
+    </ul>
+    <p class="mt-4 text-sm text-amber-900/90">
+      Donnez-lui en revanche un jeton d’API chez votre hébergeur : avec lui, il crée et
+      détruit les serveurs tout seul.
+    </p>
+  </section>
+
+  <section class="mt-14 border-t border-trait pt-8">
+    <h2 class="text-xl font-semibold tracking-tight">Le dépôt</h2>
+    <p class="mt-3 text-encre-douce">
+      Licence MIT, fourni tel quel. Les recettes sont bienvenues ; le socle doit rester
+      simple et prévisible.
+    </p>
+    <p class="mt-5 flex flex-wrap gap-3">
+      <a href="https://github.com/quentintou/agent-vibe-code-stack-starter" class="inline-block rounded bg-accent px-5 py-2.5 text-sm font-medium text-fond hover:bg-encre">
+        Voir le dépôt sur GitHub
+      </a>
+      <a href="https://stack.app-run.pro" class="inline-block rounded border border-trait bg-white px-5 py-2.5 text-sm font-medium hover:border-stone-400">
+        Voir la démonstration applicative
+      </a>
+    </p>
+  </section>
+  </div>
+</Base>

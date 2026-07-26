@@ -1,0 +1,8 @@
+/* Tailwind 4 : une seule ligne d'import, pas de fichier de configuration.
+   Les personnalisations passent par @theme, directement en CSS. */
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@theme {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
