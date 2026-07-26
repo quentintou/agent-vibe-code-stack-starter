@@ -58,6 +58,8 @@ suite "Aucun secret ne peut être publié sur GitHub" \
   ./tests/test-init-git.sh
 suite "Aucune route n'expose la base sans authentification" \
   python3 tests/test-routes-app.py
+suite "L'envoi de courrier refuse une configuration à moitié faite" \
+  ./tests/test-mail.sh
 
 echo
 if [ "$ECHECS" -eq 0 ]; then

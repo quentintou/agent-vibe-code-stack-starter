@@ -9,6 +9,7 @@ document dit laquelle, pourquoi, et où sont les limites.
 | Certificats / proxy | oui | HTTPS, protection contre les abus |
 | Turnstile | oui, facultatif | anti-robots sur la connexion (`docs/09-captcha.md`) |
 | Email Routing | oui, facultatif | **recevoir** du courrier sur le domaine |
+| Email Sending | oui, facultatif | **envoyer** du courrier depuis l'application |
 | Workers | **non** pour le code applicatif | voir ci-dessous |
 | R2, D1, KV, Pages | non | le serveur suffit |
 
@@ -93,25 +94,135 @@ Voir `docs/03-cloudflare.md`, qui traite la bascule des serveurs de noms.
 
 ---
 
-## Envoyer du courrier : ce n'est pas la même chose
+## Envoyer du courrier
 
-Email Routing **reçoit et redirige**. Il n'envoie pas.
+Email Routing **reçoit et redirige**. Il n'envoie pas. C'est un autre produit du
+même service, **Email Sending**, et il est fourni dans ce dépôt.
 
-Pour qu'une application envoie des messages — confirmation de compte,
-réinitialisation de mot de passe, notification — il faut autre chose. Deux
-chemins, aucun n'est fourni par ce dépôt :
+Le squelette expose `src/lib/mail.ts` :
 
-- **Un Worker** avec l'API `send_email` de Cloudflare, autorisé à écrire vers
-  une adresse vérifiée. Gratuit, mais limité aux destinataires déclarés — bien
-  pour se notifier soi-même, pas pour écrire à des clients.
-- **Un service d'envoi** (Resend, Postmark, Scaleway, Brevo…) avec une clé API
-  posée dans le `.env`. C'est ce qu'il faut dès qu'on écrit à des tiers, parce
-  qu'il faut soigner SPF, DKIM et DMARC pour ne pas finir en indésirables.
+```ts
+import { envoyerMail } from '#/lib/mail'
 
-Dans les deux cas, **la clé d'envoi est un secret** : elle va dans le `.env` du
-serveur, jamais dans le dépôt. Le garde-fou anti-secrets la refusera de
-lui-même si elle s'y glisse.
+const resultat = await envoyerMail({
+  to: 'quelquun@exemple.fr',
+  subject: 'Votre demande a été enregistrée',
+  text: 'Merci, nous revenons vers vous sous 24 h.',
+})
+```
 
-Le squelette d'application livré ici ne dépend d'aucun envoi d'e-mail : la
-création de compte se fait en ligne de commande (`docs/05-pannes.md`, panne
-n°10), justement pour ne pas imposer ce choix.
+Sans configuration, l'envoi est inactif : la fonction journalise le message et
+retourne `{ ok: false }`. L'application démarre et fonctionne — la création de
+compte se fait en ligne de commande, précisément pour ne dépendre d'aucun envoi.
+
+### Pourquoi Cloudflare plutôt qu'un service d'envoi
+
+Le domaine est déjà chez Cloudflare pour le DNS et le certificat. Onboarder le
+domaine dans Email Sending pose seul **SPF, DKIM et DMARC** — les trois
+enregistrements qu'on oublie et qui font finir en indésirables. Un compte de
+moins, une facture de moins, une clé de moins à faire tourner.
+
+Resend, Postmark ou Brevo restent de bons produits. Ils ne sont simplement plus
+nécessaires pour envoyer depuis un serveur.
+
+### Mise en place
+
+1. **Onboarder le domaine.** Tableau de bord Cloudflare > **Compute** > **Email
+   Service** > **Email Sending** > **Onboard Domain**. Choisir le domaine,
+   relire les enregistrements proposés, valider. Cloudflare pose MX, SPF, DKIM
+   et DMARC ; propagation de 5 à 15 minutes sur un domaine en DNS Cloudflare.
+2. **Créer le jeton.** Mon profil > Jetons d'API, permission
+   **`Email Sending: Edit`**. C'est un secret : il va dans le `.env` du serveur,
+   jamais dans le dépôt — le garde-fou anti-secrets le refusera de lui-même.
+3. **Renseigner le `.env`** : `CF_EMAIL_ACCOUNT_ID`, `CF_EMAIL_API_TOKEN`,
+   `MAIL_FROM` (et `MAIL_FROM_NAME` si vous voulez un nom affiché).
+
+Les trois premières vont **ensemble**. En renseigner une ou deux fait échouer le
+démarrage, volontairement : une configuration à moitié faite ne se découvre
+autrement que le jour du premier message, en production.
+
+### Le prix, et ce qui est gratuit
+
+| | |
+|---|---|
+| Vers les adresses de destination **vérifiées de votre compte** | gratuit, tous plans |
+| Vers **n'importe quel destinataire** | plan Workers Paid |
+| Inclus avec ce plan | 3 000 messages par mois |
+| Au-delà | 0,35 $ par millier |
+| Taille maximale d'un message | 5 Mio, pièces jointes comprises |
+
+Autrement dit : se notifier soi-même — une alerte, un formulaire de contact qui
+vous prévient — ne coûte rien. Écrire à vos utilisateurs demande le plan payant.
+
+Le service est en **bêta** : la soumission SMTP authentifiée date de juin 2026.
+Pour un outil interne c'est sans conséquence ; pour un envoi critique, prévoyez
+de pouvoir en changer.
+
+### Le vérifier, sur le serveur
+
+Écrire du code d'envoi ne prouve pas qu'un message part. Le squelette fournit
+l'outil qui le prouve :
+
+```bash
+docker compose exec -T app node tester-email.mjs vous@exemple.fr
+```
+
+Il envoie un vrai message et affiche la réponse brute de Cloudflare. Les causes
+d'échec les plus fréquentes sont nommées dans la sortie — domaine non onboardé,
+jeton sans la bonne permission, destinataire non vérifié sur un plan gratuit.
+
+**« Accepté » n'est pas « distribué ».** Une réponse en succès ressemble à ça :
+
+```json
+{"success":true,"result":{"message_id":"<…@votredomaine.fr>",
+ "delivered":[],"queued":[],"permanent_bounces":[]}}
+```
+
+Les trois listes peuvent être **vides** alors que le message part et arrive
+très bien. Ne cherchez pas à en tirer un verdict : allez regarder la boîte du
+destinataire, **et son dossier indésirables** — c'est le seul contrôle qui
+prouve quelque chose.
+
+Deux pièges rencontrés en écrivant ce document, l'un et l'autre invisibles à la
+relecture :
+
+- L'API répond parfois **HTTP 200 avec `success: false`**. Le module et l'outil
+  lisent donc le corps, jamais le seul code de statut.
+- Le schéma attend des **objets**, pas des chaînes. `from: "Nom <a@b.fr>"` et
+  `to: "a@b.fr"` font répondre `400 invalid_request_schema`. La bonne forme est
+  `from: { address, name }` et `to: [{ address }]`.
+
+### Si vous préférez le SMTP
+
+Le même service accepte le SMTP, utile pour brancher un outil existant qui ne
+sait parler que ce protocole :
+
+| | |
+|---|---|
+| Hôte | `smtp.mx.cloudflare.net` |
+| Port | `465`, TLS implicite |
+| Utilisateur | la chaîne littérale `api_token` |
+| Mot de passe | le jeton d'API |
+
+Ni STARTTLS sur 587, ni relais sur 25. Ce dépôt utilise l'API REST, qui se fait
+avec `fetch` et n'ajoute donc aucune dépendance.
+
+### Une note sur la délivrabilité
+
+Un message accepté par Cloudflare, correctement signé, peut malgré tout être
+filtré à l'arrivée — c'est fréquent avec un domaine neuf, et avec les
+destinataires à filtrage sévère (hôpitaux, banques, administrations). Si le
+message compte vraiment, prévoyez un second canal plutôt que de supposer qu'il
+est arrivé.
+
+**Soignez `MAIL_FROM_NAME`.** En validant ce document, trois messages sont
+partis du même domaine à une minute d'intervalle, avec la même authentification.
+Les deux dont le nom affiché était `Starter` sont arrivés en boîte de réception.
+Le troisième, nommé `Starter — test d'envoi`, est arrivé **en indésirables** —
+tiret cadratin et apostrophe dans le nom affiché.
+
+Un seul cas ne fait pas une règle, et rien ne prouve que la ponctuation soit
+la cause. Mais la conclusion pratique tient : un nom d'expéditeur court et sans
+fantaisie typographique ne coûte rien, et **le contrôle d'arrivée doit inclure
+le dossier indésirables** — sans quoi ce message-là aurait été compté comme
+perdu.

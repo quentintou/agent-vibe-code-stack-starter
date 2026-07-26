@@ -69,8 +69,9 @@ toujours dans cette catégorie. D'où le serveur.
 ### Ce que Cloudflare fait quand même, dans les deux cas
 
 Cloudflare gère le **domaine** (les enregistrements DNS), et propose en option
-la protection contre les abus, les formulaires anti-robots (Turnstile) et la
-redirection d'e-mails. Gratuit pour ces usages.
+la protection contre les abus, les formulaires anti-robots (Turnstile), la
+redirection d'e-mails et **l'envoi** de courrier depuis l'application. Gratuit
+pour ces usages, l'envoi vers des tiers mis à part.
 
 **Le certificat HTTPS, lui, est obtenu par Caddy** sur le serveur, directement
 auprès de Let's Encrypt. C'est pour cela que le proxy Cloudflare doit rester
@@ -81,11 +82,13 @@ certificat n'est jamais délivré. Voir `docs/03-cloudflare.md`.
 de périmètre, pas un oubli : base persistante, traitements longs, tâches à heure
 fixe, et la possibilité de changer d'hébergeur sans rien réécrire.
 
-Les Workers restent le bon outil pour trois choses — envoyer des e-mails depuis
-le domaine, rediriger en périphérie, exposer un petit point d'entrée sans état —
-et cohabitent sans difficulté. `docs/08-workers-et-emails.md` détaille où passe
-la frontière. Si l'utilisateur demande du Workers, lis-lui ce document plutôt
-que de refuser ou d'improviser.
+Les Workers restent le bon outil pour rediriger en périphérie et exposer un
+petit point d'entrée sans état, et cohabitent sans difficulté avec le serveur.
+**L'envoi d'e-mails n'en fait pas partie** : l'application appelle directement
+Cloudflare Email Sending, sans Worker intermédiaire — c'est fourni dans le
+squelette. `docs/08-workers-et-emails.md` détaille où passe la frontière. Si
+l'utilisateur demande du Workers, lis-lui ce document plutôt que de refuser ou
+d'improviser.
 
 ---
 
